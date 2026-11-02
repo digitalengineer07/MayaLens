@@ -9,7 +9,8 @@ import {
   Activity, 
   BarChart3,
   ChevronRight,
-  Eye
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 
 interface StreamResult {
@@ -148,36 +149,42 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] flex flex-col font-sans selection:bg-zinc-800 selection:text-white">
       
-      {/* Clean, Minimal Header */}
-      <header className="border-b border-zinc-800/80 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+      {/* Floating Rounded Header */}
+      <header className="sticky top-4 z-50 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto rounded-2xl border border-zinc-800/90 bg-zinc-900/85 backdrop-blur-xl px-4 sm:px-6 py-3 shadow-xl shadow-black/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-100 text-zinc-950 flex items-center justify-center font-bold text-sm shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-zinc-200 to-white text-zinc-950 flex items-center justify-center font-bold text-sm shadow-md ring-1 ring-white/20">
               ML
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-semibold text-base text-zinc-100 tracking-tight">MayaLens</span>
-              <span className="text-xs text-zinc-500 hidden sm:inline">Deepfake Detection & Explainability</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-base text-zinc-100 tracking-tight">MayaLens</span>
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Ready
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 font-normal hidden sm:block">Explainable Deepfake Forensics</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setShowBenchmarks(!showBenchmarks)}
-              className="text-xs text-zinc-400 hover:text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-zinc-900/60 transition flex items-center gap-1.5"
+              className="text-xs text-zinc-300 hover:text-white px-3 py-1.5 rounded-xl border border-zinc-700/80 hover:border-zinc-600 bg-zinc-800/70 hover:bg-zinc-800 transition flex items-center gap-1.5 shadow-xs"
             >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span>Model Evaluation</span>
+              <BarChart3 className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="hidden sm:inline">Model</span> Evaluation
             </button>
 
             <a
               href="/api/report/demo"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-zinc-900 bg-zinc-100 hover:bg-white px-3.5 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1.5"
+              className="text-xs font-semibold text-zinc-950 bg-gradient-to-r from-zinc-100 to-white hover:from-white hover:to-zinc-200 px-3.5 py-1.5 rounded-xl transition shadow-md shadow-black/10 flex items-center gap-1.5"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download PDF Report</span>
+              <Download className="w-3.5 h-3.5 text-zinc-900" />
+              <span>PDF Report</span>
             </a>
           </div>
         </div>
@@ -638,9 +645,75 @@ export default function App() {
 
       </main>
 
-      {/* Clean Footer */}
-      <footer className="border-t border-zinc-800/80 py-6 px-6 text-center text-xs text-zinc-500 font-sans">
-        MayaLens • Integrated Deepfake Detection powered by Explainable AI
+      {/* Enhanced Footer Section */}
+      <footer className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-12 mt-6">
+        <div className="rounded-2xl border border-zinc-800/90 bg-zinc-900/50 backdrop-blur-md p-6 sm:p-8 space-y-6 shadow-xl shadow-black/20">
+          
+          {/* Top Row: Brand & Description */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700/80 flex items-center justify-center font-bold text-xs text-white">
+                ML
+              </div>
+              <div>
+                <div className="font-semibold text-sm text-zinc-100">MayaLens Forensics</div>
+                <div className="text-xs text-zinc-400">Integrated Deepfake Detection powered by Explainable AI</div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <a
+                href="/api/report/demo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg border border-zinc-700/70 bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white transition inline-flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Forensic PDF Report</span>
+              </a>
+              <a
+                href="https://github.com/digitalengineer07/MayaLens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-lg border border-zinc-700/70 bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-white transition inline-flex items-center gap-1.5"
+              >
+                <span>GitHub</span>
+                <ExternalLink className="w-3 h-3 text-zinc-400" />
+              </a>
+            </div>
+          </div>
+
+          {/* Middle Row: Model Architecture Badges */}
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-zinc-400">Pipeline Methodology:</div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="px-2.5 py-1 rounded-md bg-zinc-950/70 border border-zinc-800 text-zinc-300">
+                Spatial Stream: EfficientNet-B4 (1.15× crop)
+              </span>
+              <span className="px-2.5 py-1 rounded-md bg-zinc-950/70 border border-zinc-800 text-zinc-300">
+                Context Stream: Vision Transformer (1.70× crop)
+              </span>
+              <span className="px-2.5 py-1 rounded-md bg-zinc-950/70 border border-zinc-800 text-zinc-300">
+                Frequency Stream: FFT / DCT Residual ResNet
+              </span>
+              <span className="px-2.5 py-1 rounded-md bg-zinc-950/70 border border-zinc-800 text-zinc-300">
+                XAI: Grad-CAM · LIME · Saliency
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom Row: Status & Copyright */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-zinc-800/60 text-xs text-zinc-500">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>Engine Status: Online • Trained on FaceForensics++ & Celeb-DF v2</span>
+            </div>
+            <div>
+              MayaLens Framework • Research & Verification Platform
+            </div>
+          </div>
+
+        </div>
       </footer>
 
     </div>
