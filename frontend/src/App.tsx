@@ -244,12 +244,13 @@ export default function App() {
         {/* Frame Header Navigation */}
         <header className="flex items-center justify-between z-10 pb-8 sm:pb-12">
           {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-[#181a2e] text-[#E7D8FF] flex items-center justify-center font-bold text-sm shadow-md">
-              ML
-            </div>
-            <span className="font-bold text-lg text-[#141624] tracking-tight">MayaLens</span>
-          </div>
+          <a href="#overview" className="flex items-center group transition">
+            <img 
+              src="/mayalens_logo_transparent.png" 
+              alt="MayaLens - Deepfake Detection & Explainability" 
+              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+            />
+          </a>
 
           {/* Center Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#2d314e]">
@@ -326,11 +327,13 @@ export default function App() {
               
               {/* Card Header */}
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#B8C0FF] to-[#E7D8FF] text-[#181a2e] flex items-center justify-center font-bold text-[10px]">
-                    ML
-                  </div>
-                  <span className="font-semibold text-xs tracking-wide">MayaLens Forensic Card</span>
+                <div className="flex items-center gap-2.5">
+                  <img 
+                    src="/mayalens_icon.png" 
+                    alt="MayaLens Icon" 
+                    className="w-7 h-7 object-contain drop-shadow-sm" 
+                  />
+                  <span className="font-semibold text-xs tracking-wide text-white">MayaLens Forensic Card</span>
                 </div>
                 
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
@@ -990,13 +993,11 @@ export default function App() {
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#B8C0FF]/20 pb-5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#181a2e] text-[#E7D8FF] flex items-center justify-center font-bold text-xs">
-                ML
-              </div>
-              <div>
-                <div className="font-bold text-sm text-[#141624]">MayaLens Forensics</div>
-                <div className="text-xs text-[#52567a]">Explainable AI Deepfake Detection Platform</div>
-              </div>
+              <img 
+                src="/mayalens_logo_transparent.png" 
+                alt="MayaLens Forensics" 
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
             </div>
 
             <div className="flex items-center gap-3 text-xs">
