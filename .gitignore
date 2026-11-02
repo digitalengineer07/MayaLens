@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+backend/uploads/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
