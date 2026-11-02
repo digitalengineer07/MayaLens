@@ -242,44 +242,44 @@ export default function App() {
         </div>
 
         {/* Frame Header Navigation */}
-        <header className="flex items-center justify-between z-10 pb-8 sm:pb-12">
-          {/* Logo */}
-          <a href="#overview" className="flex items-center group transition">
+        <header className="flex items-center justify-between z-10 pb-6 sm:pb-10 pt-1">
+          {/* Logo - Increased size for clear visibility */}
+          <a href="#overview" className="flex items-center group transition shrink-0">
             <img 
               src="/mayalens_logo_transparent.png" 
               alt="MayaLens - Deepfake Detection & Explainability" 
-              className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02]"
+              className="h-14 sm:h-16 lg:h-[72px] w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-xs"
             />
           </a>
 
-          {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#2d314e]">
-            <a href="#overview" className="hover:text-black transition">Overview</a>
-            <button onClick={scrollToUpload} className="hover:text-black transition text-left">Upload Lab</button>
-            <a href="#visual-inspection" className="hover:text-black transition">XAI Visualizer</a>
-            <a href="#streams" className="hover:text-black transition">Model Streams</a>
-            <button onClick={() => setShowBenchmarks(!showBenchmarks)} className="hover:text-black transition">
+          {/* Center Navigation Links - Adjusted spacing and typography */}
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-[13px] font-semibold text-[#2d314e]">
+            <a href="#overview" className="hover:text-black transition py-1">Overview</a>
+            <button onClick={scrollToUpload} className="hover:text-black transition text-left py-1 cursor-pointer">Upload Lab</button>
+            <a href="#visual-inspection" className="hover:text-black transition py-1">XAI Visualizer</a>
+            <a href="#streams" className="hover:text-black transition py-1">Model Streams</a>
+            <button onClick={() => setShowBenchmarks(!showBenchmarks)} className="hover:text-black transition py-1 cursor-pointer">
               Benchmarks
             </button>
           </nav>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2.5">
+          {/* Right Action Buttons - Proportional to header */}
+          <div className="flex items-center gap-3 shrink-0">
             <a
               href="/api/report/demo"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold text-[#181a2e] hover:text-black transition px-3 py-1.5 flex items-center gap-1.5"
+              className="text-xs sm:text-[13px] font-semibold text-[#181a2e] hover:text-black hover:bg-white/50 transition px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-transparent hover:border-white/60"
             >
-              <FileText className="w-3.5 h-3.5" />
+              <FileText className="w-4 h-4 text-[#5e69bf]" />
               <span className="hidden sm:inline">PDF Report</span>
             </a>
 
             <button
               onClick={scrollToUpload}
-              className="text-xs font-semibold text-white bg-[#181a2e] hover:bg-[#232742] px-4 py-2 rounded-full transition shadow-md flex items-center gap-1.5"
+              className="text-xs sm:text-[13px] font-semibold text-white bg-[#181a2e] hover:bg-[#232742] px-5 py-2.5 rounded-full transition shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
             >
-              <Upload className="w-3.5 h-3.5 text-[#B8C0FF]" />
+              <Upload className="w-4 h-4 text-[#B8C0FF]" />
               <span>Inspect Media</span>
             </button>
           </div>
