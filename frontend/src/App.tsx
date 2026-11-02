@@ -252,13 +252,24 @@ export default function App() {
             />
           </a>
 
-          {/* Center Navigation Links - Adjusted spacing and typography */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-[13px] font-semibold text-[#2d314e]">
-            <a href="#overview" className="hover:text-black transition py-1">Overview</a>
-            <button onClick={scrollToUpload} className="hover:text-black transition text-left py-1 cursor-pointer">Upload Lab</button>
-            <a href="#visual-inspection" className="hover:text-black transition py-1">XAI Visualizer</a>
-            <a href="#streams" className="hover:text-black transition py-1">Model Streams</a>
-            <button onClick={() => setShowBenchmarks(!showBenchmarks)} className="hover:text-black transition py-1 cursor-pointer">
+          {/* Center Navigation Links - Only Relevant Options */}
+          <nav className="hidden md:flex items-center gap-8 text-[14px] font-semibold text-[#2d314e]">
+            <button 
+              onClick={scrollToUpload} 
+              className="hover:text-black transition py-1 cursor-pointer"
+            >
+              Upload Lab
+            </button>
+            <a 
+              href="#visual-inspection" 
+              className="hover:text-black transition py-1"
+            >
+              XAI Visualizer
+            </a>
+            <button 
+              onClick={() => setShowBenchmarks(!showBenchmarks)} 
+              className="hover:text-black transition py-1 cursor-pointer"
+            >
               Benchmarks
             </button>
           </nav>
