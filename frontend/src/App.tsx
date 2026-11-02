@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldAlert, 
-  ShieldCheck, 
   Upload, 
-  Activity, 
-  Layers, 
-  Radio, 
-  Eye, 
   Download, 
   RefreshCw, 
-  ExternalLink,
-  Database
+  Crosshair, 
+  Sliders,
+  Layers,
+  Activity
 } from 'lucide-react';
 
 interface StreamResult {
@@ -78,15 +74,14 @@ interface BenchmarkData {
 }
 
 export default function App() {
-  const [analyzing, setAnalyzing] = useState(false);
   const [data, setData] = useState<AnalysisData | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [selectedKeyframe, setSelectedKeyframe] = useState<number>(0);
-  const [activeXAIMethod, setActiveXAIMethod] = useState<'gradcam' | 'gradcam_plus' | 'lime' | 'saliency'>('gradcam');
+  const [activeXAI, setActiveXAI] = useState<'normal' | 'gradcam' | 'gradcam_plus' | 'lime' | 'saliency'>('gradcam');
   const [benchmarks, setBenchmarks] = useState<BenchmarkData | null>(null);
-  const [showBenchmarks, setShowBenchmarks] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [showDossier, setShowDossier] = useState(false);
+  const [scrubIndex, setScrubIndex] = useState<number>(0);
 
-  // Load sample on mount
   useEffect(() => {
     loadSample();
     fetchBenchmarks();
@@ -96,12 +91,13 @@ export default function App() {
     setAnalyzing(true);
     try {
       const res = await fetch('/api/sample');
-      if (!res.ok) throw new Error('API sample error');
+      if (!res.ok) throw new Error('API Error');
       const json = await res.json();
       setData(json);
       setSelectedKeyframe(0);
-    } catch (err) {
-      console.error(err);
+      setScrubIndex(0);
+    } catch (e) {
+      console.error(e);
     } finally {
       setAnalyzing(false);
     }
@@ -114,15 +110,14 @@ export default function App() {
         const json = await res.json();
         setBenchmarks(json);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadedFile(file);
     setAnalyzing(true);
 
     const formData = new FormData();
@@ -133,13 +128,14 @@ export default function App() {
         method: 'POST',
         body: formData,
       });
-      if (!res.ok) throw new Error('Analysis failed');
+      if (!res.ok) throw new Error('Upload analysis failed');
       const json = await res.json();
       setData(json);
       setSelectedKeyframe(0);
+      setScrubIndex(0);
     } catch (err) {
       console.error(err);
-      alert('Error analyzing file. Backend may be offline.');
+      alert('Analysis error. Backend may be offline.');
     } finally {
       setAnalyzing(false);
     }
@@ -148,531 +144,450 @@ export default function App() {
   const currentFrame = data?.keyframes[selectedKeyframe];
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
-      {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-[#090e1a]/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div className="min-h-screen bg-[#0e1115] text-[#cbd5e1] font-mono flex flex-col selection:bg-orange-500/30 selection:text-orange-200">
+      
+      {/* Precision Top Instrument Bar */}
+      <header className="border-b border-[#21262d] bg-[#14181f] px-5 py-3 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-pink-500 p-0.5 shadow-lg shadow-cyan-500/20">
-            <div className="h-full w-full bg-[#090e1a] rounded-[10px] flex items-center justify-center">
-              <Radio className="h-5 w-5 text-cyan-400 animate-pulse" />
-            </div>
+          <div className="h-3 w-3 rounded-full bg-[#ff5500] shadow-[0_0_8px_#ff5500]" />
+          <div className="flex items-baseline gap-2">
+            <span className="text-white font-bold tracking-widest text-sm">MAYALENS</span>
+            <span className="text-[#64748b] text-[11px] tracking-wider">OPTICAL FORENSIC SYSTEM</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 font-mono">
-                MAYA<span className="text-slate-100">LENS</span>
-              </span>
-              <span className="text-[10px] uppercase font-bold tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full">
-                XAI Forensic v1.0
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 font-mono">Multi-Stream Deepfake Detection & Explainability</p>
-          </div>
+          <span className="text-[10px] text-[#475569] border border-[#262c36] px-1.5 py-0.5 rounded">
+            SPEC: FFT·DCT·VIT·EFFNET
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 text-sm">
-          <button 
-            onClick={() => setShowBenchmarks(!showBenchmarks)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 transition"
+        {/* Global Controls */}
+        <div className="flex items-center gap-2 text-xs">
+          <label className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1c222c] hover:bg-[#252d3a] border border-[#2d3748] text-slate-200 cursor-pointer transition">
+            <Upload className="w-3.5 h-3.5 text-orange-400" />
+            <span>INSPECT MEDIA</span>
+            <input type="file" accept="video/*,image/*" onChange={handleFileUpload} className="hidden" />
+          </label>
+
+          <button
+            onClick={loadSample}
+            disabled={analyzing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1c222c] hover:bg-[#252d3a] border border-[#2d3748] text-slate-200 transition"
           >
-            <Database className="w-4 h-4 text-indigo-400" />
-            <span>Model Benchmark</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${analyzing ? 'animate-spin' : ''}`} />
+            <span>{analyzing ? 'COMPUTING...' : 'SAMPLE'}</span>
           </button>
 
-          <a 
+          <button
+            onClick={() => setShowDossier(!showDossier)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded border transition ${
+              showDossier 
+                ? 'bg-orange-500/10 border-orange-500/50 text-orange-300' 
+                : 'bg-[#1c222c] hover:bg-[#252d3a] border-[#2d3748] text-slate-200'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>METRICS</span>
+          </button>
+
+          <a
             href="/api/report/demo"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium shadow-md shadow-cyan-600/20 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#ff5500] hover:bg-[#ff661a] text-black font-semibold tracking-wide transition shadow-sm"
           >
-            <Download className="w-4 h-4" />
-            <span>Forensic PDF Report</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>DOSSIER PDF</span>
           </a>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+      {/* Main Workspace */}
+      <main className="flex-1 max-w-[1500px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        {/* Top Control Bar: Upload & Fast Demo Actions */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Upload card */}
-          <div className="md:col-span-2 relative group overflow-hidden border border-dashed border-slate-700 hover:border-cyan-500/60 rounded-2xl bg-[#0d1424]/60 p-6 flex flex-col justify-center items-center text-center transition cursor-pointer">
-            <input 
-              type="file" 
-              accept="video/*,image/*" 
-              onChange={handleFileUpload}
-              className="absolute inset-0 opacity-0 cursor-pointer z-10" 
-            />
-            <div className="h-12 w-12 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-              <Upload className="h-6 w-6 text-cyan-400" />
-            </div>
-            <h3 className="font-semibold text-slate-200">
-              {uploadedFile ? uploadedFile.name : "Drop Video or Face Image to Inspect"}
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Supports MP4, AVI, MOV, JPG, PNG • Automatically aligned via MTCNN & 68 landmarks
-            </p>
-          </div>
+        {/* Left Column: The Optical Viewfinder & Light Table (7 cols) */}
+        <section className="lg:col-span-7 flex flex-col gap-3">
+          
+          {/* Viewport Card */}
+          <div className="bg-[#12161d] border border-[#222936] rounded-lg overflow-hidden flex flex-col">
+            
+            {/* Viewport Top Bezel */}
+            <div className="bg-[#181d26] border-b border-[#222936] px-4 py-2 flex items-center justify-between text-xs text-[#94a3b8]">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1 text-slate-300 font-semibold">
+                  <Crosshair className="w-3.5 h-3.5 text-orange-400" />
+                  OPTICAL LOUPE
+                </span>
+                <span className="text-[#64748b]">|</span>
+                <span>FRAME: #{currentFrame ? currentFrame.frame_idx : '00'}</span>
+                <span className="text-[#64748b]">|</span>
+                <span>{currentFrame ? currentFrame.timestamp : '00:00.00'}</span>
+              </div>
 
-          {/* Quick Demo & State card */}
-          <div className="border border-slate-800 rounded-2xl bg-[#0d1424]/60 p-6 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
-                <span>PIPELINE ENGINE</span>
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                  ACTIVE
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-[#64748b]">CROP:</span>
+                <span className="text-orange-400 font-medium">
+                  {currentFrame ? currentFrame.crop_type : '1.15x TIGHT'}
                 </span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Processes dual crops (1.15× tight + 1.70× context) across spatial, ViT, and spectral FFT/DCT streams with multi-head BCE loss.
-              </p>
             </div>
-            <button 
-              onClick={loadSample}
-              disabled={analyzing}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-200 transition"
-            >
-              <RefreshCw className={`w-4 h-4 text-cyan-400 ${analyzing ? 'animate-spin' : ''}`} />
-              <span>{analyzing ? 'Processing Pipeline...' : 'Reload Demo Sample Video'}</span>
-            </button>
+
+            {/* The Lens Canvas / Inspection Plate */}
+            <div className="relative aspect-video w-full bg-[#0a0d11] light-table-grid flex items-center justify-center p-4">
+              
+              {/* Corner Registration Reticles (Camera Viewfinder style) */}
+              <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-[#475569]/60 pointer-events-none" />
+              <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-[#475569]/60 pointer-events-none" />
+              <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-[#475569]/60 pointer-events-none" />
+              <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-[#475569]/60 pointer-events-none" />
+
+              {/* Center Crosshairs */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                <div className="w-full h-px bg-white" />
+                <div className="h-full w-px bg-white absolute" />
+              </div>
+
+              {/* SVG Optical Plate with Face Alignment & XAI Signature */}
+              <svg className="w-full h-full max-h-[380px]" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  {/* Grad-CAM Heat Signature */}
+                  <radialGradient id="camHeat" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#ff5500" stopOpacity="0.85" />
+                    <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.45" />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                  </radialGradient>
+                  
+                  {/* LIME Superpixel gradient */}
+                  <radialGradient id="limeFill" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                    <stop offset="60%" stopColor="#059669" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#059669" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+
+                {/* MTCNN Face Boundary Box */}
+                <rect x="220" y="60" width="200" height="240" rx="4" fill="#131922" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="225" y="75" fill="#64748b" fontSize="9" fontFamily="monospace">ALIGNMENT: 68-PTS NORMALIZED</text>
+
+                {/* Human Face Silhouette */}
+                <ellipse cx="320" cy="180" rx="70" ry="95" fill="#1b222d" stroke="#2a3443" strokeWidth="1" />
+                {/* Eyes */}
+                <ellipse cx="295" cy="155" rx="10" ry="6" fill="#334155" />
+                <ellipse cx="345" cy="155" rx="10" ry="6" fill="#334155" />
+                {/* Nose bridge */}
+                <path d="M 320 162 L 316 188 L 324 188" fill="none" stroke="#475569" strokeWidth="1.5" />
+                {/* Mouth */}
+                <ellipse cx="320" cy="225" rx="22" ry="8" fill="#334155" />
+
+                {/* Overlays according to active filter */}
+                {activeXAI === 'gradcam' && (
+                  <g>
+                    <circle cx="320" cy="230" r="42" fill="url(#camHeat)" />
+                    <circle cx="280" cy="215" r="28" fill="url(#camHeat)" />
+                    <line x1="335" y1="230" x2="385" y2="230" stroke="#ff5500" strokeWidth="1" />
+                    <rect x="385" y="222" width="125" height="16" fill="#0f141c" stroke="#ff5500" strokeWidth="0.8" />
+                    <text x="390" y="233" fill="#ff5500" fontSize="9" fontFamily="monospace">GRAD-CAM: JAW SEAM</text>
+                  </g>
+                )}
+
+                {activeXAI === 'gradcam_plus' && (
+                  <g>
+                    <circle cx="295" cy="155" r="28" fill="url(#camHeat)" />
+                    <circle cx="345" cy="155" r="28" fill="url(#camHeat)" />
+                    <line x1="360" y1="155" x2="400" y2="155" stroke="#ff5500" strokeWidth="1" />
+                    <rect x="400" y="147" width="135" height="16" fill="#0f141c" stroke="#ff5500" strokeWidth="0.8" />
+                    <text x="405" y="158" fill="#ff5500" fontSize="9" fontFamily="monospace">GRAD-CAM++: PERIOCULAR</text>
+                  </g>
+                )}
+
+                {activeXAI === 'lime' && (
+                  <g>
+                    <polygon points="265,195 305,190 315,235 275,240" fill="url(#limeFill)" stroke="#10b981" strokeWidth="1" />
+                    <polygon points="325,190 365,195 355,240 315,235" fill="url(#limeFill)" stroke="#10b981" strokeWidth="1" />
+                    <line x1="365" y1="210" x2="400" y2="210" stroke="#10b981" strokeWidth="1" />
+                    <rect x="400" y="202" width="145" height="16" fill="#0f141c" stroke="#10b981" strokeWidth="0.8" />
+                    <text x="405" y="213" fill="#10b981" fontSize="9" fontFamily="monospace">LIME: SLIC BOUNDARY</text>
+                  </g>
+                )}
+
+                {activeXAI === 'saliency' && (
+                  <g>
+                    <circle cx="320" cy="180" r="82" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="4 2" />
+                    <path d="M 285 155 Q 320 170 355 155" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+                    <path d="M 295 225 Q 320 240 345 225" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+                    <line x1="375" y1="180" x2="410" y2="180" stroke="#38bdf8" strokeWidth="1" />
+                    <rect x="410" y="172" width="135" height="16" fill="#0f141c" stroke="#38bdf8" strokeWidth="0.8" />
+                    <text x="415" y="183" fill="#38bdf8" fontSize="9" fontFamily="monospace">SALIENCY: GRADIENTS</text>
+                  </g>
+                )}
+
+                {/* Landmark Coordinates */}
+                <g fill="#ff5500" opacity="0.6">
+                  <circle cx="285" cy="150" r="1.5" /><circle cx="295" cy="148" r="1.5" /><circle cx="305" cy="150" r="1.5" />
+                  <circle cx="335" cy="150" r="1.5" /><circle cx="345" cy="148" r="1.5" /><circle cx="355" cy="150" r="1.5" />
+                  <circle cx="320" cy="170" r="1.5" /><circle cx="320" cy="185" r="1.5" />
+                  <circle cx="305" cy="225" r="1.5" /><circle cx="320" cy="228" r="1.5" /><circle cx="335" cy="225" r="1.5" />
+                </g>
+              </svg>
+
+              {/* Status Stamp overlay */}
+              <div className="absolute top-4 left-4 bg-[#0e1115]/80 backdrop-blur border border-[#2a3240] px-2 py-1 rounded text-[10px] text-[#94a3b8]">
+                SOURCE: {data?.filename || 'clip_01.mp4'}
+              </div>
+
+              <div className="absolute bottom-4 right-4 bg-[#0e1115]/80 backdrop-blur border border-[#2a3240] px-2 py-1 rounded text-[10px] text-orange-400 font-mono">
+                {currentFrame?.xai_focus || 'LANDMARK STABLE'}
+              </div>
+            </div>
+
+            {/* Viewport Toolbar: Filter Selection */}
+            <div className="bg-[#14181f] border-t border-[#222936] p-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#64748b] text-[11px] mr-1">SPECTRAL LOUPE:</span>
+                {(['normal', 'gradcam', 'gradcam_plus', 'lime', 'saliency'] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveXAI(filter)}
+                    className={`px-2 py-1 rounded text-[11px] font-mono transition ${
+                      activeXAI === filter 
+                        ? 'bg-[#ff5500] text-black font-bold' 
+                        : 'bg-[#1b212b] text-[#94a3b8] hover:bg-[#252c38] hover:text-white'
+                    }`}
+                  >
+                    {filter.toUpperCase().replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-[11px] text-[#64748b]">
+                RES: 224×224 RGB
+              </div>
+            </div>
+
           </div>
+
+          {/* Filmstrip Scrubber Deck */}
+          <div className="bg-[#12161d] border border-[#222936] rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#94a3b8]">
+              <span className="flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-orange-400" />
+                TEMPORAL FILMSTRIP // SEQUENCE SCRUBBER
+              </span>
+              <span className="text-[11px] text-[#64748b]">CLICK TO AUDIT FRAME</span>
+            </div>
+
+            {/* Physical-feeling filmstrip thumbnails */}
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5">
+              {data?.temporal_series?.slice(0, 8).map((pt, idx) => {
+                const isSelected = scrubIndex === idx;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setScrubIndex(idx);
+                      if (data.keyframes[idx % data.keyframes.length]) {
+                        setSelectedKeyframe(idx % data.keyframes.length);
+                      }
+                    }}
+                    className={`p-1.5 rounded border text-left transition flex flex-col justify-between h-14 ${
+                      isSelected 
+                        ? 'bg-[#1e2532] border-[#ff5500] text-white shadow-[0_0_8px_rgba(255,85,0,0.2)]' 
+                        : 'bg-[#101318] border-[#222834] text-[#64748b] hover:border-[#384252]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[9px]">
+                      <span>#{pt.frame}</span>
+                      <div className={`w-1.5 h-1.5 rounded-full ${pt.score > 50 ? 'bg-[#ff5500]' : 'bg-[#10b981]'}`} />
+                    </div>
+                    <div className="text-[10px] font-bold text-slate-300">
+                      {pt.score}%
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Temporal Barcode Track */}
+            <div className="pt-2 border-t border-[#1c222c]">
+              <div className="h-2 w-full flex gap-0.5 rounded overflow-hidden bg-[#0a0d11]">
+                {data?.temporal_series?.map((pt, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 transition-all ${
+                      pt.score > 50 ? 'bg-[#ff5500]' : 'bg-[#1e293b]'
+                    }`}
+                    title={`Frame ${pt.frame}: ${pt.score}%`}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-between text-[9px] text-[#64748b] pt-1">
+                <span>0.00s</span>
+                <span>CHRONOLOGICAL TEMPORAL SPECTRUM</span>
+                <span>{data?.temporal_series?.slice(-1)[0]?.time || '3.00s'}</span>
+              </div>
+            </div>
+          </div>
+
         </section>
 
-        {/* Forensic Verdict Banner */}
-        {data && (
-          <section className={`rounded-2xl border p-6 relative overflow-hidden transition-all ${
-            data.is_fake 
-              ? 'bg-gradient-to-r from-red-950/40 via-red-900/20 to-slate-900/60 border-red-500/40 shadow-xl shadow-red-950/20' 
-              : 'bg-gradient-to-r from-emerald-950/40 via-emerald-900/20 to-slate-900/60 border-emerald-500/40 shadow-xl shadow-emerald-950/20'
-          }`}>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className={`p-3.5 rounded-2xl ${
-                  data.is_fake 
-                    ? 'bg-red-500/20 border border-red-500/50 text-red-400' 
-                    : 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400'
-                }`}>
-                  {data.is_fake ? <ShieldAlert className="w-8 h-8" /> : <ShieldCheck className="w-8 h-8" />}
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h2 className={`text-2xl font-black tracking-wide font-mono ${
-                      data.is_fake ? 'text-red-400' : 'text-emerald-400'
-                    }`}>
-                      {data.decision}
-                    </h2>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
-                      data.is_fake ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                    }`}>
-                      {data.risk_level} RISK
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-300 mt-1.5 max-w-2xl leading-relaxed">
-                    {data.summary}
-                  </p>
-                </div>
-              </div>
-
-              {/* Confidence Score Gauge */}
-              <div className="flex items-center gap-4 bg-slate-900/80 px-6 py-4 rounded-xl border border-slate-800">
-                <div className="text-right">
-                  <div className="text-3xl font-extrabold font-mono text-cyan-400">{data.confidence}%</div>
-                  <div className="text-xs text-slate-400 uppercase tracking-wider">Prediction Confidence</div>
-                </div>
-                <div className="h-10 w-px bg-slate-800" />
-                <div>
-                  <div className="text-xs font-mono text-slate-400">LATENCY</div>
-                  <div className="text-base font-bold text-slate-200 font-mono">{data.inference_time_ms} ms</div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Multi-Stream Tri-Core Architecture Cards */}
-        {data && (
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase font-mono flex items-center gap-2">
-                <Layers className="w-4 h-4 text-cyan-400" />
-                Multi-Stream Core Decomposition (Report §5)
-              </h3>
-              <span className="text-xs text-slate-500 font-mono">Weighted Feature Fusion Layer</span>
+        {/* Right Column: The Forensic Ledger & Instrument Deck (5 cols) */}
+        <section className="lg:col-span-5 flex flex-col gap-3">
+          
+          {/* Stamped Verdict Plaque */}
+          <div className="bg-[#12161d] border border-[#222936] rounded-lg p-5 relative overflow-hidden">
+            {/* Top industrial marking */}
+            <div className="flex items-center justify-between text-[11px] text-[#64748b] mb-3">
+              <span>DOCUMENT REF // MAYALENS-XAI</span>
+              <span className="text-orange-400 font-mono">CONFIDENTIAL REPORT</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {data.streams.map((stream) => (
-                <div 
-                  key={stream.id}
-                  className="rounded-xl border border-slate-800 bg-[#0c1220]/80 p-5 hover:border-slate-700 transition"
-                >
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-                    <span className="font-semibold text-slate-200">{stream.name}</span>
-                    <span className="bg-slate-800 px-2 py-0.5 rounded text-cyan-400 border border-slate-700">{stream.weight}</span>
+            {/* Verdict Box */}
+            <div className={`border-2 p-4 rounded-md mb-4 ${
+              data?.is_fake 
+                ? 'border-[#ff5500]/60 bg-[#1a1312]' 
+                : 'border-[#10b981]/60 bg-[#0d1714]'
+            }`}>
+              <div className="text-[10px] tracking-widest text-[#94a3b8] uppercase mb-1">
+                SYSTEM VERDICT
+              </div>
+              <div className={`text-xl font-black tracking-wide ${
+                data?.is_fake ? 'text-[#ff5500]' : 'text-[#10b981]'
+              }`}>
+                {data?.decision || 'COMPUTING...'}
+              </div>
+              <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-white/10 text-slate-300">
+                <span>CONFIDENCE SCORE:</span>
+                <span className="font-bold text-white text-sm">{data?.confidence}%</span>
+              </div>
+            </div>
+
+            {/* Concise Human Findings */}
+            <p className="text-xs text-[#94a3b8] leading-relaxed mb-4">
+              {data?.summary}
+            </p>
+
+            {/* Metric counters */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-[#181d26] p-2.5 rounded border border-[#242b38]">
+                <div className="text-[10px] text-[#64748b]">INFERENCE LATENCY</div>
+                <div className="text-sm font-bold text-white mt-0.5">{data?.inference_time_ms} ms</div>
+              </div>
+              <div className="bg-[#181d26] p-2.5 rounded border border-[#242b38]">
+                <div className="text-[10px] text-[#64748b]">RISK PROFILE</div>
+                <div className="text-sm font-bold text-orange-400 mt-0.5">{data?.risk_level}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tri-Stream Instrument Decomposition */}
+          <div className="bg-[#12161d] border border-[#222936] rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs text-[#94a3b8]">
+              <span className="flex items-center gap-1.5 font-bold text-white">
+                <Layers className="w-3.5 h-3.5 text-orange-400" />
+                STREAM DECOMPOSITION (REPORT §5)
+              </span>
+              <span className="text-[10px] text-[#64748b]">3-TIER FUSION</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {data?.streams?.map((st) => (
+                <div key={st.id} className="bg-[#181d26] border border-[#222937] p-3 rounded">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-200">{st.name}</span>
+                    <span className="text-orange-400 font-bold">{st.confidence}%</span>
                   </div>
 
-                  <div className="flex items-end justify-between my-3">
-                    <div className="text-2xl font-bold font-mono text-slate-100">
-                      {stream.confidence}%
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                      stream.confidence > 50 ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                    }`}>
-                      {stream.status}
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mb-3">
+                  {/* Level meter */}
+                  <div className="h-1.5 bg-[#0e1115] rounded-full overflow-hidden mb-2">
                     <div 
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        stream.confidence > 50 ? 'bg-gradient-to-r from-amber-500 to-red-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-500'
-                      }`}
-                      style={{ width: `${stream.confidence}%` }}
+                      className={`h-full rounded-full ${st.confidence > 50 ? 'bg-[#ff5500]' : 'bg-[#10b981]'}`}
+                      style={{ width: `${st.confidence}%` }}
                     />
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-normal">
-                    {stream.focus}
-                  </p>
+                  <div className="flex items-center justify-between text-[10px] text-[#64748b]">
+                    <span className="truncate max-w-[240px]">{st.focus}</span>
+                    <span className="text-slate-400 uppercase font-mono">{st.status}</span>
+                  </div>
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          </div>
 
-        {/* Explainable AI (XAI) & Key-Frame Visualizer */}
-        {data && currentFrame && (
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* Visualizer Frame & Heatmaps (7 cols) */}
-            <div className="lg:col-span-7 rounded-2xl border border-slate-800 bg-[#0c1220]/90 p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-cyan-400" />
-                  <span className="font-semibold text-sm text-slate-200">XAI Visualizer (Key Frame #{currentFrame.frame_idx})</span>
+          {/* Keyframe Evidence Dossier */}
+          {currentFrame && (
+            <div className="bg-[#12161d] border border-[#222936] rounded-lg p-4 space-y-2.5">
+              <div className="flex items-center justify-between text-xs text-[#94a3b8]">
+                <span className="font-bold text-white">KEYFRAME #{currentFrame.frame_idx} AUDIT</span>
+                <span className="text-[10px] text-orange-400 font-mono">{currentFrame.crop_type}</span>
+              </div>
+
+              <div className="text-xs bg-[#181d26] p-3 rounded border border-[#242b38] space-y-2">
+                <div>
+                  <span className="text-[10px] text-[#64748b] block">ANOMALY DETECTED:</span>
+                  <span className="text-slate-200">{currentFrame.anomaly_detected}</span>
                 </div>
-
-                {/* XAI Method Selector */}
-                <div className="flex items-center bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
-                  <button 
-                    onClick={() => setActiveXAIMethod('gradcam')}
-                    className={`px-2.5 py-1 rounded-md transition font-mono ${
-                      activeXAIMethod === 'gradcam' ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Grad-CAM
-                  </button>
-                  <button 
-                    onClick={() => setActiveXAIMethod('gradcam_plus')}
-                    className={`px-2.5 py-1 rounded-md transition font-mono ${
-                      activeXAIMethod === 'gradcam_plus' ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Grad-CAM++
-                  </button>
-                  <button 
-                    onClick={() => setActiveXAIMethod('lime')}
-                    className={`px-2.5 py-1 rounded-md transition font-mono ${
-                      activeXAIMethod === 'lime' ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    LIME Superpixels
-                  </button>
-                  <button 
-                    onClick={() => setActiveXAIMethod('saliency')}
-                    className={`px-2.5 py-1 rounded-md transition font-mono ${
-                      activeXAIMethod === 'saliency' ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    Saliency
-                  </button>
+                <div className="border-t border-[#222834] pt-2">
+                  <span className="text-[10px] text-[#64748b] block">SPECTRAL FFT/DCT:</span>
+                  <span className="text-slate-300">{currentFrame.features.fft_peaks}</span>
+                </div>
+                <div className="border-t border-[#222834] pt-2">
+                  <span className="text-[10px] text-[#64748b] block">ViT ATTENTION:</span>
+                  <span className="text-slate-300">{currentFrame.features.vit_attention}</span>
                 </div>
               </div>
-
-              {/* Simulated Face Crop with Interactive Heatmap Overlays */}
-              <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center group">
-                {/* SVG Forensic Canvas Representing the Aligned Face + Heatmap */}
-                <svg className="w-full h-full" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
-                  {/* Background Grid */}
-                  <defs>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" strokeWidth="0.5" />
-                    </pattern>
-                    <radialGradient id="heatGrad" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#ef4444" stopOpacity="0.85" />
-                      <stop offset="40%" stopColor="#f59e0b" stopOpacity="0.65" />
-                      <stop offset="70%" stopColor="#06b6d4" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                    </radialGradient>
-                    <radialGradient id="limeGrad" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-                      <stop offset="60%" stopColor="#059669" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#065f46" stopOpacity="0" />
-                    </radialGradient>
-                  </defs>
-                  
-                  <rect width="640" height="360" fill="#090d16" />
-                  <rect width="640" height="360" fill="url(#grid)" />
-
-                  {/* MTCNN Face Box (1.15x / 1.70x crop bounds) */}
-                  <rect x="220" y="60" width="200" height="240" rx="16" fill="#131c31" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4 2" />
-                  <text x="230" y="80" fill="#38bdf8" fontSize="10" fontFamily="monospace">MTCNN BOUNDS (CROP {currentFrame.crop_type})</text>
-
-                  {/* Stylized Face Silhouette */}
-                  <ellipse cx="320" cy="180" rx="75" ry="100" fill="#1e293b" />
-                  {/* Eyes */}
-                  <ellipse cx="290" cy="155" rx="12" ry="7" fill="#475569" />
-                  <ellipse cx="350" cy="155" rx="12" ry="7" fill="#475569" />
-                  {/* Nose */}
-                  <polygon points="320,165 315,190 325,190" fill="#334155" />
-                  {/* Mouth */}
-                  <ellipse cx="320" cy="225" rx="24" ry="10" fill="#475569" />
-
-                  {/* Dynamic Heatmap Layer according to selected XAI */}
-                  {activeXAIMethod === 'gradcam' && (
-                    <g className="animate-pulse">
-                      <circle cx="320" cy="235" r="45" fill="url(#heatGrad)" />
-                      <circle cx="280" cy="220" r="30" fill="url(#heatGrad)" />
-                      <text x="370" y="240" fill="#f87171" fontSize="11" fontFamily="monospace">GRAD-CAM [Mouth/Jaw Seam]</text>
-                      <line x1="335" y1="235" x2="365" y2="235" stroke="#f87171" strokeWidth="1" />
-                    </g>
-                  )}
-
-                  {activeXAIMethod === 'gradcam_plus' && (
-                    <g>
-                      <circle cx="290" cy="155" r="32" fill="url(#heatGrad)" />
-                      <circle cx="350" cy="155" r="32" fill="url(#heatGrad)" />
-                      <text x="390" y="155" fill="#fbbf24" fontSize="11" fontFamily="monospace">GRAD-CAM++ [Orbital Discontinuity]</text>
-                      <line x1="365" y1="155" x2="385" y2="155" stroke="#fbbf24" strokeWidth="1" />
-                    </g>
-                  )}
-
-                  {activeXAIMethod === 'lime' && (
-                    <g>
-                      {/* Superpixel polygons */}
-                      <polygon points="260,200 300,195 310,240 270,245" fill="url(#limeGrad)" stroke="#34d399" strokeWidth="1.5" />
-                      <polygon points="330,195 370,200 360,245 320,240" fill="url(#limeGrad)" stroke="#34d399" strokeWidth="1.5" />
-                      <text x="375" y="215" fill="#34d399" fontSize="11" fontFamily="monospace">LIME [SLIC Superpixel Boundaries]</text>
-                      <line x1="355" y1="215" x2="370" y2="215" stroke="#34d399" strokeWidth="1" />
-                    </g>
-                  )}
-
-                  {activeXAIMethod === 'saliency' && (
-                    <g>
-                      <circle cx="320" cy="180" r="85" fill="none" stroke="#a855f7" strokeWidth="2" strokeDasharray="3 3" />
-                      <path d="M 280 155 Q 320 180 360 155" fill="none" stroke="#e879f9" strokeWidth="2" />
-                      <path d="M 290 225 Q 320 245 350 225" fill="none" stroke="#e879f9" strokeWidth="2" />
-                      <text x="410" y="180" fill="#e879f9" fontSize="11" fontFamily="monospace">SALIENCY [Input Gradients]</text>
-                      <line x1="385" y1="180" x2="405" y2="180" stroke="#e879f9" strokeWidth="1" />
-                    </g>
-                  )}
-
-                  {/* 68 Landmark overlay points */}
-                  <g fill="#38bdf8" opacity="0.6">
-                    <circle cx="280" cy="150" r="2" /><circle cx="290" cy="148" r="2" /><circle cx="300" cy="150" r="2" />
-                    <circle cx="340" cy="150" r="2" /><circle cx="350" cy="148" r="2" /><circle cx="360" cy="150" r="2" />
-                    <circle cx="320" cy="170" r="2" /><circle cx="320" cy="185" r="2" />
-                    <circle cx="305" cy="225" r="2" /><circle cx="320" cy="223" r="2" /><circle cx="335" cy="225" r="2" />
-                  </g>
-                </svg>
-
-                <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur border border-slate-800 text-xs px-3 py-1.5 rounded-lg font-mono text-slate-300">
-                  {currentFrame.xai_focus}
-                </div>
-              </div>
-
-              {/* Keyframe selector chips */}
-              <div className="flex items-center gap-2 pt-1">
-                <span className="text-xs text-slate-400 font-mono">SELECT KEYFRAME:</span>
-                {data.keyframes.map((kf, idx) => (
-                  <button
-                    key={kf.frame_idx}
-                    onClick={() => setSelectedKeyframe(idx)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition flex items-center gap-2 ${
-                      selectedKeyframe === idx 
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold' 
-                        : 'bg-slate-800/60 text-slate-400 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    <span>Frame #{kf.frame_idx}</span>
-                    <span className="text-[10px] opacity-75">{kf.timestamp}</span>
-                  </button>
-                ))}
-              </div>
             </div>
+          )}
 
-            {/* Keyframe Forensic Breakdown (5 cols) */}
-            <div className="lg:col-span-5 rounded-2xl border border-slate-800 bg-[#0c1220]/90 p-5 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
-                  <span className="text-xs font-mono uppercase text-slate-400">Forensic Evidence Profile</span>
-                  <span className="text-xs font-mono font-bold text-red-400">
-                    Anomaly Score: {(currentFrame.fake_score * 100).toFixed(1)}%
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80">
-                    <span className="text-xs text-cyan-400 font-mono font-semibold block mb-1">
-                      PRIMARY DEFECT IDENTIFIED
-                    </span>
-                    <p className="text-sm text-slate-200">
-                      {currentFrame.anomaly_detected}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2.5 text-xs font-mono">
-                    <div className="p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-                      <span className="text-slate-400 block mb-0.5 font-bold">FFT / DCT FREQUENCY:</span>
-                      <span className="text-slate-200">{currentFrame.features.fft_peaks}</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-                      <span className="text-slate-400 block mb-0.5 font-bold">VISION TRANSFORMER ATTENTION:</span>
-                      <span className="text-slate-200">{currentFrame.features.vit_attention}</span>
-                    </div>
-
-                    <div className="p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-                      <span className="text-slate-400 block mb-0.5 font-bold">LANDMARK ALIGNMENT:</span>
-                      <span className="text-slate-200">{currentFrame.features.facial_landmarks}</span>
-                    </div>
-                  </div>
-                </div>
+          {/* Model Benchmark Drawer (Collapsible) */}
+          {showDossier && benchmarks && (
+            <div className="bg-[#12161d] border border-orange-500/40 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-orange-400">BENCHMARK DATA (evaluation.csv)</span>
+                <span className="text-[10px] text-[#64748b]">IN-DOMAIN & CROSS-DATASET</span>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-mono">Export format: ReportLab PDF</span>
-                <a 
-                  href="/api/report/demo"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-mono font-semibold transition"
-                >
-                  <span>Download Report Section</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-
-          </section>
-        )}
-
-        {/* Temporal Fluctuation Chart (Video Frame Analysis) */}
-        {data && data.temporal_series && data.temporal_series.length > 1 && (
-          <section className="rounded-2xl border border-slate-800 bg-[#0c1220]/80 p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-sm font-semibold text-slate-200">Temporal Manipulation Probability Curve</h3>
-              </div>
-              <span className="text-xs text-slate-500 font-mono">Threshold ε = 0.50</span>
-            </div>
-
-            {/* Custom Bar chart timeline */}
-            <div className="pt-4 pb-2">
-              <div className="h-28 flex items-end gap-1.5 sm:gap-2">
-                {data.temporal_series.map((pt, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    {/* Tooltip */}
-                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-slate-900 border border-slate-700 text-[10px] font-mono px-2 py-1 rounded text-slate-200 whitespace-nowrap z-20 shadow-lg">
-                      Frame {pt.frame} ({pt.time}): {pt.score}%
-                    </div>
-                    {/* Bar */}
-                    <div 
-                      className={`w-full rounded-t transition-all duration-500 ${
-                        pt.score > 50 
-                          ? 'bg-gradient-to-t from-red-600/60 to-red-500 group-hover:brightness-125' 
-                          : 'bg-gradient-to-t from-cyan-600/60 to-cyan-500 group-hover:brightness-125'
-                      }`}
-                      style={{ height: `${Math.max(8, pt.score)}%` }}
-                    />
-                    <span className="text-[9px] font-mono text-slate-500 truncate w-full text-center">
-                      {pt.time}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Benchmark & Training Metrics Drawer / Modal */}
-        {showBenchmarks && benchmarks && (
-          <section className="rounded-2xl border border-indigo-500/40 bg-[#0c1022] p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Database className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-bold text-slate-100">Official Model Benchmark & Evaluation (From Repo)</h3>
-              </div>
-              <button 
-                onClick={() => setShowBenchmarks(false)}
-                className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 bg-slate-800 rounded"
-              >
-                Close
-              </button>
-            </div>
-
-            {/* Metrics summary cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-xs text-slate-400 font-mono">TRAINING ACCURACY</div>
-                <div className="text-2xl font-bold font-mono text-emerald-400">{benchmarks.training.final_accuracy}%</div>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-xs text-slate-400 font-mono">TRAINING AUC-ROC</div>
-                <div className="text-2xl font-bold font-mono text-cyan-400">{benchmarks.training.final_auc}%</div>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-xs text-slate-400 font-mono">VALIDATION AUC</div>
-                <div className="text-2xl font-bold font-mono text-indigo-400">{benchmarks.training.val_auc}%</div>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-xs text-slate-400 font-mono">TOTAL LOGGED EPOCHS</div>
-                <div className="text-2xl font-bold font-mono text-slate-200">{benchmarks.training.total_epochs}</div>
-              </div>
-            </div>
-
-            {/* Benchmark Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-800">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-900/80 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="p-2.5">Dataset & Split</th>
-                    <th className="p-2.5">Level</th>
-                    <th className="p-2.5">Classification Head</th>
-                    <th className="p-2.5">AUC-ROC</th>
-                    <th className="p-2.5">LogLoss</th>
-                    <th className="p-2.5">EER</th>
-                    <th className="p-2.5">Accuracy</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                  {benchmarks.evaluation.slice(0, 8).map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-900/40">
-                      <td className="p-2.5 font-semibold text-slate-200">{row.set}</td>
-                      <td className="p-2.5">{row.level}</td>
-                      <td className="p-2.5 text-cyan-400">{row.head}</td>
-                      <td className="p-2.5 font-bold text-emerald-400">{row.AUC}</td>
-                      <td className="p-2.5">{row.LogLoss}</td>
-                      <td className="p-2.5 text-amber-400">{row.EER}</td>
-                      <td className="p-2.5">{row.ACC}</td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[11px] font-mono">
+                  <thead className="bg-[#181d26] text-[#64748b] border-b border-[#242b38]">
+                    <tr>
+                      <th className="p-1.5">Dataset</th>
+                      <th className="p-1.5">Level</th>
+                      <th className="p-1.5">AUC</th>
+                      <th className="p-1.5">EER</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#1e2430] text-slate-300">
+                    {benchmarks.evaluation.slice(0, 6).map((r, i) => (
+                      <tr key={i}>
+                        <td className="p-1.5 font-bold text-white">{r.set}</td>
+                        <td className="p-1.5">{r.level}</td>
+                        <td className="p-1.5 text-orange-400">{r.AUC}</td>
+                        <td className="p-1.5 text-[#64748b]">{r.EER}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </section>
-        )}
+          )}
+
+        </section>
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 font-mono">
-        MayaLens Deepfake Detection • Developed with React + Vite + Tailwind CSS + FastAPI
+      {/* Industrial Bottom Status Strip */}
+      <footer className="border-t border-[#21262d] bg-[#14181f] px-5 py-2.5 flex items-center justify-between text-[11px] text-[#64748b]">
+        <div className="flex items-center gap-3">
+          <span>PORT: 5173 / 8000</span>
+          <span>•</span>
+          <span>XAI: GRAD-CAM / LIME / SALIENCY</span>
+          <span>•</span>
+          <span>BACKEND: FASTAPI</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>MayaLens Forensic Core</span>
+        </div>
       </footer>
+
     </div>
   );
 }
