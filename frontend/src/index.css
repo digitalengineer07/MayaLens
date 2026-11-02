@@ -3,30 +3,33 @@
 :root {
   --color-periwinkle-light: #E7D8FF;
   --color-periwinkle-base: #B8C0FF;
-  --color-periwinkle-dark: #8c97eb;
-  --bg-twilight: #0b0c16;
-  --card-twilight: #121422;
-  --border-periwinkle: rgba(184, 192, 255, 0.16);
+  --color-periwinkle-dark: #7b88e8;
+  --bg-page: #f4f3fb;
 }
 
 body {
   margin: 0;
-  background-color: #0b0c16;
-  color: #e5e7f2;
+  background-color: #f4f3fb;
+  color: #1a1c2e;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dreamy periwinkle ambient background glow */
-.periwinkle-glow {
+/* Dreamy Periwinkle Canvas Lighting */
+.periwinkle-canvas {
   background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(231, 216, 255, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 85% 60%, rgba(184, 192, 255, 0.08), transparent),
-    radial-gradient(ellipse 50% 30% at 15% 40%, rgba(231, 216, 255, 0.06), transparent);
+    radial-gradient(circle at 10% 20%, rgba(231, 216, 255, 0.45), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(184, 192, 255, 0.45), transparent 45%),
+    #f4f3fb;
 }
 
-/* Subtle custom scrollbar */
+/* The Signature Frame Gradient from the screenshot layout, tinted in Dreamy Periwinkle */
+.frame-gradient {
+  background: linear-gradient(135deg, #E7D8FF 0%, #dee3ff 45%, #B8C0FF 100%);
+}
+
+/* Custom Scrollbars in soft Periwinkle */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -35,9 +38,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(184, 192, 255, 0.2);
+  background: #B8C0FF;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(184, 192, 255, 0.35);
+  background: #9fa9ff;
 }
