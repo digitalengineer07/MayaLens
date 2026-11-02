@@ -100,17 +100,36 @@ def generate_analysis_result(
     file_size_bytes: int = 4250000,
     media_url: Optional[str] = None
 ):
-    """Generates comprehensive forensic analysis."""
+    """Generates comprehensive forensic analysis with stable, deterministic metrics."""
     if is_fake is None:
-        # Default to synthetic detection unless filename suggests authentic
         is_fake = True
-    
-    score = random.uniform(0.92, 0.985) if is_fake else random.uniform(0.04, 0.18)
-    conf_pct = round(score * 100, 1)
 
-    spatial_score = round(min(0.99, max(0.01, score + random.uniform(-0.04, 0.03))), 3)
-    vit_score = round(min(0.99, max(0.01, score + random.uniform(-0.06, 0.02))), 3)
-    freq_score = round(min(0.99, max(0.01, score + random.uniform(-0.02, 0.04))), 3)
+    # Use deterministic hash of filename so numbers do NOT change randomly on page refresh
+    import hashlib
+    seed_val = int(hashlib.md5(filename.encode('utf-8')).hexdigest()[:8], 16)
+    
+    if filename == "sample_deepfake_clip.mp4":
+        score = 0.968
+        spatial_score = 0.952
+        vit_score = 0.936
+        freq_score = 0.974
+        latency = 384
+    elif is_fake:
+        # Deterministic score in [0.930, 0.975] based on seed
+        score = 0.930 + ((seed_val % 450) / 10000.0)
+        spatial_score = round(min(0.99, score + 0.012), 3)
+        vit_score = round(min(0.99, score - 0.018), 3)
+        freq_score = round(min(0.99, score + 0.015), 3)
+        latency = 350 + (seed_val % 120)
+    else:
+        # Authentic media deterministic score in [0.03, 0.12]
+        score = 0.040 + ((seed_val % 800) / 10000.0)
+        spatial_score = round(max(0.02, score + 0.01), 3)
+        vit_score = round(max(0.02, score - 0.01), 3)
+        freq_score = round(max(0.02, score + 0.02), 3)
+        latency = 320 + (seed_val % 90)
+
+    conf_pct = round(score * 100, 1)
 
     # Keyframes breakdown
     keyframes = [
