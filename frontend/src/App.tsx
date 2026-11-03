@@ -350,127 +350,126 @@ export default function App() {
 
           {/* Right Column: Floating MayaLens Forensic Card */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="w-full max-w-md bg-gradient-to-br from-[#16182c] via-[#131526] to-[#0e101d] text-white rounded-[32px] p-6 sm:p-7 shadow-2xl border border-white/20 relative space-y-5 backdrop-blur-xl overflow-hidden">
+            <div className="w-full max-w-[420px] bg-gradient-to-br from-[#16182c] via-[#121424] to-[#0d0f1b] text-white rounded-[32px] p-6 sm:p-7 shadow-2xl shadow-[#181a2e]/30 border border-white/15 relative backdrop-blur-2xl overflow-hidden flex flex-col justify-between min-h-[280px] transition-all duration-300 hover:border-white/25">
               
               {/* Ambient Glassmorphic Glow inside Card */}
-              <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#B8C0FF]/15 rounded-full blur-2xl pointer-events-none" />
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#E7D8FF]/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -top-14 -right-14 w-40 h-40 bg-[#B8C0FF]/15 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-14 -left-14 w-40 h-40 bg-[#E7D8FF]/10 rounded-full blur-2xl pointer-events-none" />
 
               {/* Card Header */}
               <div className="flex items-center justify-between border-b border-white/10 pb-4 relative z-10">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shadow-inner">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shadow-inner">
                     <img 
                       src="/mayalens_icon.png" 
-                      alt="MayaLens Icon" 
-                      className="w-5 h-5 object-contain drop-shadow-sm" 
+                      alt="MayaLens" 
+                      className="w-5 h-5 object-contain" 
                     />
                   </div>
                   <div>
-                    <span className="font-bold text-xs tracking-wide text-white block">MayaLens Forensic Card</span>
-                    <span className="text-[10px] text-[#B8C0FF]/70 font-mono">XAI MULTI-STREAM SCANNER</span>
+                    <h3 className="font-bold text-sm tracking-tight text-white">MayaLens</h3>
+                    <p className="text-[11px] text-[#B8C0FF]/70">Deepfake Detection</p>
                   </div>
                 </div>
                 
                 {data ? (
                   <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
-                    data.is_fake ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                    data.is_fake 
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs' 
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
                   }`}>
                     {data.risk_level}
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    STANDBY
+                    Ready
                   </span>
                 )}
               </div>
 
-              {/* Card Body - Dual State: Standby vs Active Analysis */}
-              <div className="relative z-10">
+              {/* Card Body */}
+              <div className="relative z-10 my-4">
                 {data ? (
-                  <div>
+                  <div className="space-y-1.5">
                     <div className="text-[10px] text-[#B8C0FF]/70 uppercase tracking-widest font-mono font-semibold">
-                      VERDICT CONFIDENCE
+                      Verdict Confidence
                     </div>
-                    <div className="text-3xl font-extrabold tracking-tight text-white mt-1 flex flex-wrap items-baseline gap-2">
-                      <span>{data.confidence}%</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${data.is_fake ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                    <div className="flex flex-wrap items-baseline gap-2.5">
+                      <span className="text-4xl font-extrabold tracking-tight text-white">
+                        {data.confidence}%
+                      </span>
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg ${
+                        data.is_fake ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'
+                      }`}>
                         {data.decision}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#B8C0FF]/70 font-mono mt-1.5 truncate">
-                      FILE: {data.filename} • {data.resolution || '1280×720'} ({data.fps || 24}fps) • {data.duration || '20.0s'} • {data.file_size || '9.96 MB'}
-                    </div>
+                    <p className="text-xs text-[#B8C0FF]/70 truncate pt-1">
+                      {data.filename} • {data.duration || '20.0s'}
+                    </p>
                   </div>
                 ) : (
-                  <div>
+                  <div className="space-y-1.5">
                     <div className="text-[10px] text-[#B8C0FF]/70 uppercase tracking-widest font-mono font-semibold">
-                      IN-DOMAIN BENCHMARK ACCURACY
+                      Detection Benchmark
                     </div>
-                    <div className="text-3xl font-extrabold tracking-tight text-white mt-1 flex items-baseline gap-2">
-                      <span>98.9%</span>
-                      <span className="text-xs font-semibold text-[#B8C0FF] bg-[#B8C0FF]/15 px-2.5 py-0.5 rounded-md border border-[#B8C0FF]/25">
-                        AUC-ROC BENCHMARK
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-4xl font-extrabold tracking-tight text-white">
+                        98.9%
+                      </span>
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-[#B8C0FF]/15 text-[#E7D8FF] border border-[#B8C0FF]/25">
+                        AUC-ROC
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#B8C0FF]/70 font-mono mt-1.5 flex items-center justify-between">
-                      <span>AWAITING MEDIA INGESTION</span>
-                      <span className="text-emerald-400 font-semibold">● READY FOR SCAN</span>
-                    </div>
+                    <p className="text-xs text-[#B8C0FF]/70 pt-1">
+                      Multi-stream explainable forensic scanner
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Three Stream Gauges inside Card */}
-              <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/10 relative z-10">
-                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Spatial</div>
-                  <div className="text-sm font-bold text-[#E7D8FF]">
-                    {data ? `${data.streams[0]?.confidence}%` : '98.9%'}
-                  </div>
-                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
-                    {data ? data.streams[0]?.status : '1.15× Crop'}
-                  </div>
-                </div>
-
-                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Context</div>
-                  <div className="text-sm font-bold text-[#E7D8FF]">
-                    {data ? `${data.streams[1]?.confidence}%` : '99.0%'}
-                  </div>
-                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
-                    {data ? data.streams[1]?.status : '1.70× Crop'}
-                  </div>
-                </div>
-
-                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Frequency</div>
-                  <div className="text-sm font-bold text-[#E7D8FF]">
-                    {data ? `${data.streams[2]?.confidence}%` : '98.2%'}
-                  </div>
-                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
-                    {data ? data.streams[2]?.status : 'FFT / DCT'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Footer Info */}
-              <div className="flex items-center justify-between text-[10px] text-[#B8C0FF]/60 pt-2 border-t border-white/10 font-mono relative z-10">
-                <span>INSPECTOR: XAI-ENGINE</span>
+              {/* Card Footer */}
+              <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs relative z-10">
                 {data ? (
-                  <button 
-                    onClick={() => {
-                      setData(null);
-                      setPreviewUrl(null);
-                      setSelectedFile(null);
-                    }} 
-                    className="text-[10px] text-[#B8C0FF] hover:text-white underline cursor-pointer transition"
-                  >
-                    Reset to Standby
-                  </button>
+                  <>
+                    <div className="flex items-center gap-4 text-[11px]">
+                      <div>
+                        <span className="text-[9px] text-[#B8C0FF]/60 block font-mono">SPATIAL</span>
+                        <span className="font-semibold text-white">{data.streams[0]?.confidence}%</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#B8C0FF]/60 block font-mono">CONTEXT</span>
+                        <span className="font-semibold text-white">{data.streams[1]?.confidence}%</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-[#B8C0FF]/60 block font-mono">FREQUENCY</span>
+                        <span className="font-semibold text-white">{data.streams[2]?.confidence}%</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        setData(null);
+                        setPreviewUrl(null);
+                        setSelectedFile(null);
+                      }} 
+                      className="text-[11px] font-semibold text-[#B8C0FF] hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  </>
                 ) : (
-                  <span className="text-emerald-400 font-semibold">MTCNN 68-PTS READY</span>
+                  <>
+                    <div>
+                      <span className="text-[9px] text-[#B8C0FF]/60 block font-mono uppercase">Streams</span>
+                      <span className="font-semibold text-white text-[11px]">Spatial • Context • Spectral</span>
+                    </div>
+
+                    <span className="text-[10px] font-mono font-semibold px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[#B8C0FF]">
+                      XAI v1.0
+                    </span>
+                  </>
                 )}
               </div>
 
