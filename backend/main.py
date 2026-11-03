@@ -287,7 +287,7 @@ def generate_deterministic_result(
             "features": {
                 "fft_peaks": f"{hf_val}% High-Frequency power ratio (Spectral Anomaly)" if is_fake else f"{hf_val}% Natural organic decay",
                 "vit_attention": "Discontinuous patch attention between boundary and background" if is_fake else "Smooth coherent contextual attention distribution",
-                "facial_landmarks": f"Texture variance {lap_val} σ²; MTCNN 68-pts tracked across {meta['total_frames']} frames"
+                "facial_landmarks": f"Texture variance {lap_val} Var; MTCNN 68-pts tracked across {meta['total_frames']} frames"
             }
         })
 
@@ -394,7 +394,7 @@ def generate_deterministic_result(
                 "status": "Manipulated" if freq_score > 0.5 else "Normal",
                 "metrics": {
                     "High-Freq Energy": f"{meta['hf_spectral_ratio']}% Nyquist",
-                    "Texture Sharpness": f"{meta['avg_laplacian']} σ² Laplacian",
+                    "Texture Sharpness": f"{meta['avg_laplacian']} Var (Laplacian)",
                     "Transform Type": "2D-FFT & Block DCT",
                     "Checkerboard Grid": "82.5% Peaks" if is_fake else "None (Clean)"
                 }

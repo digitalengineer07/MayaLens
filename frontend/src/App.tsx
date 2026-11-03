@@ -25,6 +25,7 @@ interface StreamResult {
   weight: string;
   focus: string;
   status: string;
+  metrics?: Record<string, string>;
 }
 
 interface Keyframe {
@@ -34,6 +35,9 @@ interface Keyframe {
   anomaly_detected: string;
   xai_focus: string;
   crop_type: string;
+  thumbnail_url?: string;
+  laplacian_var?: number;
+  hf_spectral_ratio?: number;
   features: {
     fft_peaks: string;
     vit_attention: string;
@@ -52,7 +56,9 @@ interface AnalysisData {
   filename: string;
   media_type: string;
   file_size?: string;
+  file_size_bytes?: number;
   media_url?: string;
+  storage_path?: string;
   decision: string;
   is_fake: boolean;
   confidence: number;
@@ -60,8 +66,15 @@ interface AnalysisData {
   inference_time_ms: number;
   summary: string;
   resolution?: string;
+  width?: number;
+  height?: number;
   fps?: number;
   total_frames?: number;
+  duration?: string;
+  duration_sec?: number;
+  bitrate_mbps?: number;
+  avg_laplacian?: number;
+  hf_spectral_ratio?: number;
   streams: StreamResult[];
   keyframes: Keyframe[];
   temporal_series: TemporalPoint[];
@@ -386,8 +399,8 @@ export default function App() {
                         {data.decision}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#B8C0FF]/60 font-mono mt-1.5 truncate">
-                      FILE: {data.filename} • {data.inference_time_ms}ms • {data.file_size || '6.1 MB'}
+                    <div className="text-[11px] text-[#B8C0FF]/70 font-mono mt-1.5 truncate">
+                      FILE: {data.filename} • {data.resolution || '1280×720'} ({data.fps || 24}fps) • {data.duration || '20.0s'} • {data.file_size || '9.96 MB'}
                     </div>
                   </div>
                 ) : (
@@ -638,13 +651,13 @@ export default function App() {
 
             {/* File telemetry info */}
             <div className="mt-3 pt-3 border-t border-[#B8C0FF]/20 grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white p-2 rounded-xl border border-[#B8C0FF]/20">
-                <span className="text-[10px] text-[#71769e] block font-mono">FILE TYPE:</span>
-                <span className="font-semibold text-[#181a2e]">{selectedFile?.type || 'video/mp4'}</span>
+              <div className="bg-white p-2.5 rounded-xl border border-[#B8C0FF]/25">
+                <span className="text-[10px] text-[#71769e] block font-mono font-semibold">FILE TYPE:</span>
+                <span className="font-semibold text-[#181a2e]">{selectedFile?.type || (data ? data.media_type : 'video/mp4')}</span>
               </div>
-              <div className="bg-white p-2 rounded-xl border border-[#B8C0FF]/20">
-                <span className="text-[10px] text-[#71769e] block font-mono">FACE DETECTION:</span>
-                <span className="font-semibold text-emerald-600">MTCNN Ready</span>
+              <div className="bg-white p-2.5 rounded-xl border border-[#B8C0FF]/25">
+                <span className="text-[10px] text-[#71769e] block font-mono font-semibold">FACE DETECTION:</span>
+                <span className="font-semibold text-emerald-600">MTCNN 68-Pts Active</span>
               </div>
             </div>
 
@@ -772,7 +785,16 @@ export default function App() {
                 {/* Left: Face Canvas (7 cols) */}
                 <div className="md:col-span-7 space-y-3">
                   <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-[#eef1ff] border border-[#B8C0FF]/40 flex items-center justify-center shadow-inner">
-                    <svg className="w-full h-full max-h-[340px]" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
+                    {/* Real extracted keyframe thumbnail if available */}
+                    {currentFrame.thumbnail_url && (
+                      <img 
+                        src={currentFrame.thumbnail_url} 
+                        alt={`Keyframe #${currentFrame.frame_idx}`} 
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    )}
+
+                    <svg className={`relative z-10 w-full h-full max-h-[340px] ${currentFrame.thumbnail_url ? 'bg-black/20' : ''}`} viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
                       <defs>
                         <radialGradient id="periwinkleHeat" cx="50%" cy="50%" r="50%">
                           <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.8" />
@@ -786,17 +808,18 @@ export default function App() {
                         </radialGradient>
                       </defs>
 
-                      <rect width="640" height="360" fill="#eef1ff" />
-
-                      {/* Face bounds */}
-                      <rect x="230" y="65" width="180" height="230" rx="12" fill="#e0e5ff" stroke="#6c77d6" strokeOpacity="0.4" strokeWidth="1.5" strokeDasharray="4 4" />
-
-                      {/* Face geometry */}
-                      <ellipse cx="320" cy="180" rx="65" ry="90" fill="#d2d9ff" stroke="#6c77d6" strokeOpacity="0.3" strokeWidth="1" />
-                      <ellipse cx="295" cy="155" rx="10" ry="6" fill="#6c77d6" />
-                      <ellipse cx="345" cy="155" rx="10" ry="6" fill="#6c77d6" />
-                      <path d="M 320 162 L 316 186 L 324 186" fill="none" stroke="#6c77d6" strokeWidth="1.5" />
-                      <ellipse cx="320" cy="225" rx="22" ry="8" fill="#6c77d6" />
+                      {/* If no real image, show synthetic base canvas */}
+                      {!currentFrame.thumbnail_url && (
+                        <>
+                          <rect width="640" height="360" fill="#eef1ff" />
+                          <rect x="230" y="65" width="180" height="230" rx="12" fill="#e0e5ff" stroke="#6c77d6" strokeOpacity="0.4" strokeWidth="1.5" strokeDasharray="4 4" />
+                          <ellipse cx="320" cy="180" rx="65" ry="90" fill="#d2d9ff" stroke="#6c77d6" strokeOpacity="0.3" strokeWidth="1" />
+                          <ellipse cx="295" cy="155" rx="10" ry="6" fill="#6c77d6" />
+                          <ellipse cx="345" cy="155" rx="10" ry="6" fill="#6c77d6" />
+                          <path d="M 320 162 L 316 186 L 324 186" fill="none" stroke="#6c77d6" strokeWidth="1.5" />
+                          <ellipse cx="320" cy="225" rx="22" ry="8" fill="#6c77d6" />
+                        </>
+                      )}
 
                       {/* Overlays */}
                       {activeFilter === 'gradcam' && (
@@ -837,15 +860,17 @@ export default function App() {
                       )}
 
                       {/* 68 Landmarks */}
-                      <g fill="#4338ca" opacity="0.6">
-                        <circle cx="285" cy="150" r="1.5" /><circle cx="295" cy="148" r="1.5" /><circle cx="305" cy="150" r="1.5" />
-                        <circle cx="335" cy="150" r="1.5" /><circle cx="345" cy="148" r="1.5" /><circle cx="355" cy="150" r="1.5" />
-                        <circle cx="320" cy="170" r="1.5" /><circle cx="320" cy="185" r="1.5" />
-                        <circle cx="305" cy="225" r="1.5" /><circle cx="320" cy="228" r="1.5" /><circle cx="335" cy="225" r="1.5" />
-                      </g>
+                      {activeFilter !== 'original' && (
+                        <g fill="#4338ca" opacity="0.7">
+                          <circle cx="285" cy="150" r="1.5" /><circle cx="295" cy="148" r="1.5" /><circle cx="305" cy="150" r="1.5" />
+                          <circle cx="335" cy="150" r="1.5" /><circle cx="345" cy="148" r="1.5" /><circle cx="355" cy="150" r="1.5" />
+                          <circle cx="320" cy="170" r="1.5" /><circle cx="320" cy="185" r="1.5" />
+                          <circle cx="305" cy="225" r="1.5" /><circle cx="320" cy="228" r="1.5" /><circle cx="335" cy="225" r="1.5" />
+                        </g>
+                      )}
                     </svg>
 
-                    <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-medium text-[#181a2e] border border-[#B8C0FF]/50 shadow-xs">
+                    <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-[#181a2e] border border-[#B8C0FF]/50 shadow-sm z-20">
                       {currentFrame.xai_focus}
                     </div>
                   </div>
@@ -921,44 +946,63 @@ export default function App() {
 
           {/* The Three Model Streams */}
           <section id="streams" className="space-y-4">
-            <h2 className="text-lg font-bold text-[#141624] flex items-center gap-2">
-              <Layers className="w-5 h-5 text-[#6c77d6]" />
-              <span>Multi-Stream Core Decomposition (Report §5)</span>
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h2 className="text-lg font-bold text-[#141624] flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[#6c77d6]" />
+                <span>Multi-Stream Core Decomposition (Report §5)</span>
+              </h2>
+              <span className="text-xs text-[#52567a] font-mono font-medium">
+                Target: {data.filename} ({data.resolution || '1280×720'}, {data.total_frames || 480} frames)
+              </span>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {data.streams.map((stream) => (
-                <div key={stream.id} className="bg-white/90 backdrop-blur-md rounded-[28px] p-6 border border-white/90 shadow-xl shadow-[#B8C0FF]/15 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-sm text-[#141624]">{stream.name}</h3>
-                    <span className="text-xs font-mono font-semibold text-[#6c77d6] bg-[#f0edfa] px-2 py-0.5 rounded-md">{stream.weight}</span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between pt-1">
-                    <div className="text-3xl font-extrabold text-[#181a2e]">
-                      {stream.confidence}%
+                <div key={stream.id} className="bg-white/90 backdrop-blur-md rounded-[28px] p-6 border border-white/90 shadow-xl shadow-[#B8C0FF]/15 space-y-4 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-sm text-[#141624]">{stream.name}</h3>
+                      <span className="text-xs font-mono font-semibold text-[#6c77d6] bg-[#f0edfa] px-2 py-0.5 rounded-md">{stream.weight}</span>
                     </div>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
-                      stream.confidence > 50 
-                        ? 'bg-rose-100 text-rose-700' 
-                        : 'bg-emerald-100 text-emerald-700'
-                    }`}>
-                      {stream.status}
-                    </span>
+
+                    <div className="flex items-baseline justify-between pt-1">
+                      <div className="text-3xl font-extrabold text-[#181a2e]">
+                        {stream.confidence}%
+                      </div>
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
+                        stream.confidence > 50 
+                          ? 'bg-rose-100 text-rose-700' 
+                          : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {stream.status}
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-[#eef1ff] h-2 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          stream.confidence > 50 ? 'bg-gradient-to-r from-rose-500 to-amber-500' : 'bg-gradient-to-r from-[#6c77d6] to-[#B8C0FF]'
+                        }`}
+                        style={{ width: `${stream.confidence}%` }}
+                      />
+                    </div>
+
+                    <p className="text-xs text-[#52567a] leading-relaxed">
+                      {stream.focus}
+                    </p>
                   </div>
 
-                  <div className="w-full bg-[#eef1ff] h-2 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        stream.confidence > 50 ? 'bg-gradient-to-r from-rose-500 to-amber-500' : 'bg-gradient-to-r from-[#6c77d6] to-[#B8C0FF]'
-                      }`}
-                      style={{ width: `${stream.confidence}%` }}
-                    />
-                  </div>
-
-                  <p className="text-xs text-[#52567a] leading-relaxed">
-                    {stream.focus}
-                  </p>
+                  {/* Granular Video-Specific Stream Metrics */}
+                  {stream.metrics && (
+                    <div className="pt-3 border-t border-[#B8C0FF]/30 grid grid-cols-2 gap-2 text-xs">
+                      {Object.entries(stream.metrics).map(([k, v]) => (
+                        <div key={k} className="bg-[#f8f7fd] p-2.5 rounded-xl border border-[#B8C0FF]/25">
+                          <span className="text-[10px] text-[#52567a] uppercase font-mono font-bold block">{k}</span>
+                          <span className="font-bold text-[#181a2e] text-[11px] mt-0.5 block truncate">{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -966,31 +1010,62 @@ export default function App() {
 
           {/* Temporal Timeline */}
           {data.temporal_series && data.temporal_series.length > 1 && (
-            <section id="timeline" className="bg-white/90 backdrop-blur-md rounded-[32px] p-6 sm:p-8 border border-white/90 shadow-xl shadow-[#B8C0FF]/15 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <section id="timeline" className="bg-white/90 backdrop-blur-md rounded-[32px] p-6 sm:p-8 border border-white/90 shadow-xl shadow-[#B8C0FF]/15 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#B8C0FF]/20 pb-4">
+                <div className="flex items-center gap-2.5">
                   <Activity className="w-5 h-5 text-[#6c77d6]" />
-                  <h2 className="text-lg font-bold text-[#141624]">Temporal Manipulation Timeline</h2>
+                  <div>
+                    <h2 className="text-lg font-bold text-[#141624]">Temporal Manipulation Timeline</h2>
+                    <p className="text-xs text-[#52567a]">
+                      Frame-by-frame anomaly progression across {data.duration || '20.0s'} ({data.total_frames || '480'} frames @ {data.fps || 24} fps)
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs font-semibold text-[#52567a]">Threshold: 50%</span>
+
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+                  <span className="flex items-center gap-1.5 text-rose-600">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shadow-xs"></span> Manipulated (&gt;50%)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[#6c77d6]">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#B8C0FF] inline-block shadow-xs"></span> Authentic (&le;50%)
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-[#f0edfa] text-[#181a2e] border border-[#B8C0FF]/40 font-mono text-[11px]">
+                    Threshold: 50%
+                  </span>
+                </div>
               </div>
 
-              <div className="pt-4 pb-2">
-                <div className="h-28 flex items-end gap-2 sm:gap-3">
+              {/* Chart Container with relative reference height */}
+              <div className="pt-6 pb-2 relative">
+                {/* 50% decision threshold dashed horizontal line */}
+                <div className="absolute top-[calc(6rem*0.5+1.5rem)] left-0 right-0 border-b border-dashed border-rose-400/60 z-10 pointer-events-none flex justify-end">
+                  <span className="text-[9px] font-mono font-bold text-rose-600 bg-white/90 px-2 py-0.5 rounded -translate-y-2 border border-rose-200 shadow-xs">
+                    50% Decision Threshold
+                  </span>
+                </div>
+
+                <div className="h-32 flex items-end gap-1.5 sm:gap-2.5 w-full">
                   {data.temporal_series.map((pt, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1.5 group relative">
-                      <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition pointer-events-none bg-[#181a2e] text-white text-[10px] font-semibold px-2 py-0.5 rounded-md whitespace-nowrap z-20 shadow-md">
-                        {pt.time}: {pt.score}%
+                    <div key={i} className="flex-1 h-full flex flex-col justify-end items-center gap-1.5 group relative">
+                      {/* Floating tooltip */}
+                      <div className="absolute -top-9 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none bg-[#181a2e] text-white text-[10px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap z-30 shadow-lg border border-[#B8C0FF]/30">
+                        {pt.time} (Frame #{pt.frame}): <span className={pt.score > 50 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>{pt.score}%</span>
                       </div>
-                      <div 
-                        className={`w-full rounded-sm transition-all duration-300 ${
-                          pt.score > 50 
-                            ? 'bg-rose-500 group-hover:brightness-110' 
-                            : 'bg-[#B8C0FF] group-hover:bg-[#9fa9ff]'
-                        }`}
-                        style={{ height: `${Math.max(12, pt.score)}%` }}
-                      />
-                      <span className="text-[10px] text-[#52567a] font-medium truncate w-full text-center">
+
+                      {/* Bar Track & Fill */}
+                      <div className="w-full h-24 bg-[#eef1ff] rounded-t-lg overflow-hidden flex items-end p-0.5 border border-[#B8C0FF]/25">
+                        <div 
+                          className={`w-full rounded-t transition-all duration-500 ${
+                            pt.score > 50 
+                              ? 'bg-gradient-to-t from-rose-500 via-rose-400 to-amber-400 group-hover:brightness-110 shadow-xs shadow-rose-500/30' 
+                              : 'bg-gradient-to-t from-[#6c77d6] to-[#B8C0FF] group-hover:bg-[#9fa9ff]'
+                          }`}
+                          style={{ height: `${Math.max(12, pt.score)}%` }}
+                        />
+                      </div>
+
+                      {/* Timestamp below bar */}
+                      <span className="text-[9px] text-[#52567a] font-mono font-semibold truncate w-full text-center">
                         {pt.time}
                       </span>
                     </div>
