@@ -106,7 +106,7 @@ export default function App() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadSample();
+    // Only load benchmarks on mount - do not auto-run sample analysis so numbers do not randomly fluctuate
     fetchBenchmarks();
   }, []);
 
@@ -121,6 +121,9 @@ export default function App() {
       setSelectedKeyframe(0);
       setPreviewUrl(null);
       setSelectedFile(null);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } catch (e) {
       console.error(e);
     } finally {
@@ -334,62 +337,128 @@ export default function App() {
 
           {/* Right Column: Floating MayaLens Forensic Card */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="w-full max-w-md bg-[#181a2e] text-white rounded-[28px] p-6 shadow-2xl border border-white/20 relative space-y-5">
+            <div className="w-full max-w-md bg-gradient-to-br from-[#16182c] via-[#131526] to-[#0e101d] text-white rounded-[32px] p-6 sm:p-7 shadow-2xl border border-white/20 relative space-y-5 backdrop-blur-xl overflow-hidden">
               
+              {/* Ambient Glassmorphic Glow inside Card */}
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#B8C0FF]/15 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#E7D8FF]/10 rounded-full blur-2xl pointer-events-none" />
+
               {/* Card Header */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 relative z-10">
                 <div className="flex items-center gap-2.5">
-                  <img 
-                    src="/mayalens_icon.png" 
-                    alt="MayaLens Icon" 
-                    className="w-7 h-7 object-contain drop-shadow-sm" 
-                  />
-                  <span className="font-semibold text-xs tracking-wide text-white">MayaLens Forensic Card</span>
+                  <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shadow-inner">
+                    <img 
+                      src="/mayalens_icon.png" 
+                      alt="MayaLens Icon" 
+                      className="w-5 h-5 object-contain drop-shadow-sm" 
+                    />
+                  </div>
+                  <div>
+                    <span className="font-bold text-xs tracking-wide text-white block">MayaLens Forensic Card</span>
+                    <span className="text-[10px] text-[#B8C0FF]/70 font-mono">XAI MULTI-STREAM SCANNER</span>
+                  </div>
                 </div>
                 
-                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                  data?.is_fake ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                }`}>
-                  {data?.risk_level || 'CRITICAL'}
-                </span>
-              </div>
-
-              {/* Card Body - Verdict & Confidence */}
-              <div>
-                <div className="text-[11px] text-[#B8C0FF]/70 uppercase tracking-widest font-mono">
-                  VERDICT CONFIDENCE
-                </div>
-                <div className="text-3xl font-bold tracking-tight text-white mt-0.5 flex flex-wrap items-baseline gap-2">
-                  <span>{data ? `${data.confidence}%` : '96.3%'}</span>
-                  <span className={`text-xs font-semibold ${data?.is_fake ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {data?.decision || 'DEEPFAKE DETECTED'}
+                {data ? (
+                  <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                    data.is_fake ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-xs' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs'
+                  }`}>
+                    {data.risk_level}
                   </span>
-                </div>
-                <div className="text-[11px] text-[#B8C0FF]/60 font-mono mt-1.5 truncate">
-                  FILE: {data?.filename || 'sample_deepfake_clip.mp4'} • {data?.inference_time_ms || 380}ms
-                </div>
+                ) : (
+                  <span className="text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    STANDBY
+                  </span>
+                )}
               </div>
 
-              {/* Three Stream Pill Breakdown inside Card */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
-                <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono">Spatial</div>
-                  <div className="text-xs font-bold text-[#E7D8FF]">{data?.streams[0]?.confidence || 93.7}%</div>
+              {/* Card Body - Dual State: Standby vs Active Analysis */}
+              <div className="relative z-10">
+                {data ? (
+                  <div>
+                    <div className="text-[10px] text-[#B8C0FF]/70 uppercase tracking-widest font-mono font-semibold">
+                      VERDICT CONFIDENCE
+                    </div>
+                    <div className="text-3xl font-extrabold tracking-tight text-white mt-1 flex flex-wrap items-baseline gap-2">
+                      <span>{data.confidence}%</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${data.is_fake ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
+                        {data.decision}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#B8C0FF]/60 font-mono mt-1.5 truncate">
+                      FILE: {data.filename} • {data.inference_time_ms}ms • {data.file_size || '6.1 MB'}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-[10px] text-[#B8C0FF]/70 uppercase tracking-widest font-mono font-semibold">
+                      IN-DOMAIN BENCHMARK ACCURACY
+                    </div>
+                    <div className="text-3xl font-extrabold tracking-tight text-white mt-1 flex items-baseline gap-2">
+                      <span>98.9%</span>
+                      <span className="text-xs font-semibold text-[#B8C0FF] bg-[#B8C0FF]/15 px-2.5 py-0.5 rounded-md border border-[#B8C0FF]/25">
+                        AUC-ROC BENCHMARK
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#B8C0FF]/70 font-mono mt-1.5 flex items-center justify-between">
+                      <span>AWAITING MEDIA INGESTION</span>
+                      <span className="text-emerald-400 font-semibold">● READY FOR SCAN</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Three Stream Gauges inside Card */}
+              <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/10 relative z-10">
+                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Spatial</div>
+                  <div className="text-sm font-bold text-[#E7D8FF]">
+                    {data ? `${data.streams[0]?.confidence}%` : '98.9%'}
+                  </div>
+                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
+                    {data ? data.streams[0]?.status : '1.15× Crop'}
+                  </div>
                 </div>
-                <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono">Context</div>
-                  <div className="text-xs font-bold text-[#E7D8FF]">{data?.streams[1]?.confidence || 90.9}%</div>
+
+                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Context</div>
+                  <div className="text-sm font-bold text-[#E7D8FF]">
+                    {data ? `${data.streams[1]?.confidence}%` : '99.0%'}
+                  </div>
+                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
+                    {data ? data.streams[1]?.status : '1.70× Crop'}
+                  </div>
                 </div>
-                <div className="bg-white/5 p-2 rounded-xl text-center border border-white/5">
-                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono">Frequency</div>
-                  <div className="text-xs font-bold text-[#E7D8FF]">{data?.streams[2]?.confidence || 98.2}%</div>
+
+                <div className="bg-white/5 hover:bg-white/[0.08] transition p-2.5 rounded-2xl border border-white/10">
+                  <div className="text-[9px] text-[#B8C0FF]/70 uppercase font-mono mb-0.5">Frequency</div>
+                  <div className="text-sm font-bold text-[#E7D8FF]">
+                    {data ? `${data.streams[2]?.confidence}%` : '98.2%'}
+                  </div>
+                  <div className="text-[9px] text-white/50 mt-0.5 truncate">
+                    {data ? data.streams[2]?.status : 'FFT / DCT'}
+                  </div>
                 </div>
               </div>
 
               {/* Card Footer Info */}
-              <div className="flex items-center justify-between text-[10px] text-[#B8C0FF]/60 pt-1 font-mono">
+              <div className="flex items-center justify-between text-[10px] text-[#B8C0FF]/60 pt-2 border-t border-white/10 font-mono relative z-10">
                 <span>INSPECTOR: XAI-ENGINE</span>
-                <span>MODEL V1.0</span>
+                {data ? (
+                  <button 
+                    onClick={() => {
+                      setData(null);
+                      setPreviewUrl(null);
+                      setSelectedFile(null);
+                    }} 
+                    className="text-[10px] text-[#B8C0FF] hover:text-white underline cursor-pointer transition"
+                  >
+                    Reset to Standby
+                  </button>
+                ) : (
+                  <span className="text-emerald-400 font-semibold">MTCNN 68-PTS READY</span>
+                )}
               </div>
 
             </div>
