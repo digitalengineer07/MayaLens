@@ -6,6 +6,10 @@ __pycache__/
 .ipynb_checkpoints/
 backend/uploads/
 
+# Model Weights (exceeds GitHub 100MB limit)
+*.keras
+*.h5
+
 # Node
 frontend/node_modules/
 frontend/dist/

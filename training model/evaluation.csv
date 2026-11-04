@@ -1,0 +1,16 @@
+set,level,head,AUC,LogLoss,EER,ACC
+val,frame,fused,0.913,0.5071,0.1797,0.7718
+val,video,fused,0.989,0.183,0.0567,0.9319
+val,frame,effnet_pred,0.9119,0.4449,0.1779,0.7753
+val,frame,vit_pred,0.5202,0.6895,0.4947,0.541
+val,frame,freq_pred,0.794,0.6013,0.3044,0.6665
+test (in-domain),frame,fused,0.9352,0.3897,0.1502,0.8307
+test (in-domain),video,fused,0.9899,0.1683,0.0434,0.9375
+test (in-domain),frame,effnet_pred,0.921,0.3968,0.1679,0.806
+test (in-domain),frame,vit_pred,0.5645,0.6899,0.4484,0.5447
+test (in-domain),frame,freq_pred,0.8567,0.4765,0.2321,0.7637
+test_celebdf (cross-dataset),frame,fused,0.5653,0.9557,0.459,0.5402
+test_celebdf (cross-dataset),video,fused,0.5783,0.8533,0.455,0.5675
+test_celebdf (cross-dataset),frame,effnet_pred,0.5533,0.9251,0.4665,0.5262
+test_celebdf (cross-dataset),frame,vit_pred,0.512,0.6933,0.4833,0.5086
+test_celebdf (cross-dataset),frame,freq_pred,0.5666,0.7503,0.448,0.5462
