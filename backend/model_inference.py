@@ -423,7 +423,7 @@ def run_mayalens_inference(
             })
 
         t_elapsed_ms = round((time.time() - t_start) * 1000)
-        return {
+        res = {
             "filename": filename,
             "decision": "AUTHENTIC MEDIA",
             "verdict": "AUTHENTIC MEDIA",
@@ -496,6 +496,16 @@ def run_mayalens_inference(
             "temporal_series": temporal_pts,
             "report_url": "/api/report/demo"
         }
+
+        reports_dir = thumb_dir.parent / "reports"
+        try:
+            from backend.pdf_generator import generate_forensic_pdf_report
+            pdf_fname = generate_forensic_pdf_report(res, reports_dir, thumb_dir.parent)
+            res["report_url"] = f"/api/report/{pdf_fname}"
+        except Exception as e:
+            print(f"[MayaLensInference] PDF generation notice: {e}")
+
+        return res
 
     # Case 2: MEDIA CONTAINS FACIAL SUBJECTS -> Evaluate with MayaLens Model
     frame_preds = []
@@ -622,7 +632,7 @@ def run_mayalens_inference(
 
     t_elapsed_ms = round((time.time() - t_start) * 1000)
 
-    return {
+    res = {
         "filename": filename,
         "decision": decision,
         "verdict": decision,
@@ -695,3 +705,13 @@ def run_mayalens_inference(
         "temporal_series": temporal_pts,
         "report_url": "/api/report/demo"
     }
+
+    reports_dir = thumb_dir.parent / "reports"
+    try:
+        from backend.pdf_generator import generate_forensic_pdf_report
+        pdf_fname = generate_forensic_pdf_report(res, reports_dir, thumb_dir.parent)
+        res["report_url"] = f"/api/report/{pdf_fname}"
+    except Exception as e:
+        print(f"[MayaLensInference] PDF generation notice: {e}")
+
+    return res

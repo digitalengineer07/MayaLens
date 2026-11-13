@@ -534,6 +534,15 @@ def generate_deterministic_result(
         "report_url": "/api/report/demo"
     }
 
+    try:
+        from backend.pdf_generator import generate_forensic_pdf_report
+        pdf_fname = generate_forensic_pdf_report(res, UPLOAD_DIR / "reports", UPLOAD_DIR)
+        res["report_url"] = f"/api/report/{pdf_fname}"
+    except Exception as e:
+        print(f"[MayaLens API] PDF generation notice: {e}")
+
+    return res
+
 @app.get("/api/sample")
 def get_sample_analysis():
     """Returns MayaLens neural inference for demonstration video."""
@@ -610,6 +619,31 @@ def download_demo_report():
         path=str(DEMO_PDF),
         filename="MayaLens_Forensic_Report.pdf",
         media_type="application/pdf"
+    )
+
+@app.get("/api/report/{report_name}")
+def download_dynamic_report(report_name: str):
+    """Streams the dynamically generated MayaLens forensic PDF dossier for the analyzed media."""
+    if report_name == "demo":
+        return download_demo_report()
+
+    report_path = (UPLOAD_DIR / "reports" / report_name).resolve()
+    reports_dir = (UPLOAD_DIR / "reports").resolve()
+
+    if not str(report_path).startswith(str(reports_dir)) or not report_path.exists():
+        if DEMO_PDF.exists():
+            return FileResponse(
+                path=str(DEMO_PDF),
+                filename=f"{report_name}.pdf",
+                media_type="application/pdf"
+            )
+        raise HTTPException(status_code=404, detail="Forensic report not found.")
+
+    return FileResponse(
+        path=str(report_path),
+        filename=report_path.name,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{report_path.name}"'}
     )
 
 if __name__ == "__main__":

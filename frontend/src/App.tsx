@@ -293,7 +293,7 @@ export default function App() {
           {/* Right Action Buttons - Proportional to header */}
           <div className="flex items-center gap-3 shrink-0">
             <a
-              href="/api/report/demo"
+              href={data?.report_url || "/api/report/demo"}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs sm:text-[13px] font-semibold text-[#181a2e] hover:text-black hover:bg-white/50 transition px-3.5 py-2 rounded-full flex items-center gap-1.5 border border-transparent hover:border-white/60"
@@ -723,7 +723,8 @@ export default function App() {
 
               <div className="sm:text-right shrink-0">
                 <a
-                  href="/api/report/demo"
+                  href={data.report_url || "/api/report/demo"}
+                  download={`MayaLens_Dossier_${data.filename.replace(/\.[^/.]+$/, '')}.pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 rounded-full bg-[#181a2e] hover:bg-[#232742] text-white text-xs font-semibold inline-flex items-center gap-2 shadow-md transition"
@@ -928,7 +929,7 @@ export default function App() {
 
                   <div className="pt-2 border-t border-[#B8C0FF]/20">
                     <a
-                      href="/api/report/demo"
+                      href={data?.report_url || "/api/report/demo"}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs text-[#4338ca] hover:text-[#181a2e] font-semibold transition"
@@ -1166,7 +1167,7 @@ export default function App() {
 
             <div className="flex items-center gap-3 text-xs">
               <a
-                href="/api/report/demo"
+                href={data?.report_url || "/api/report/demo"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 rounded-full bg-[#f0edfa] hover:bg-[#e4e0f5] text-[#181a2e] font-semibold transition inline-flex items-center gap-1.5"
