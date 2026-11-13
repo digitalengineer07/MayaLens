@@ -12,8 +12,8 @@ start "MayaLens Frontend (Vite)" cmd /k "cd /d "%~dp0frontend" && npm run dev"
 
 echo.
 echo Both servers are starting up in separate terminal windows!
-echo Opening browser at http://localhost:5173 in 4 seconds...
-timeout /t 4 >nul
+echo Waiting for ML neural models to load into memory...
+timeout /t 10 >nul
 start http://localhost:5173
 echo.
 echo Done! Keep the two command windows open while using MayaLens.
