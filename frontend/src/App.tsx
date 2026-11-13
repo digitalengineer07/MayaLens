@@ -145,15 +145,21 @@ export default function App() {
     }
   };
 
-  const fetchBenchmarks = async () => {
+  const fetchBenchmarks = async (retries = 3) => {
     try {
       const res = await fetch('/api/metrics');
       if (res.ok) {
         const json = await res.json();
         setBenchmarks(json);
+      } else if (retries > 0) {
+        setTimeout(() => fetchBenchmarks(retries - 1), 1500);
       }
     } catch (e) {
-      console.error(e);
+      if (retries > 0) {
+        setTimeout(() => fetchBenchmarks(retries - 1), 1500);
+      } else {
+        console.error(e);
+      }
     }
   };
 

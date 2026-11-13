@@ -41,17 +41,27 @@ THUMB_DIR.mkdir(parents=True, exist_ok=True)
 # Mount uploads directory to serve uploaded media files and keyframe thumbnails
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
-@app.on_event("startup")
-async def startup_event():
-    """Warms up the MayaLens 3-stream ML model into memory upon server startup."""
+import threading
+
+_MODEL_READY = False
+
+def _warmup_worker():
+    global _MODEL_READY
     try:
         from backend.model_inference import load_mayalens_model, get_face_detector
-        print("[MayaLens Server] Warming up neural models...")
+        print("[MayaLens Server] Warming up neural models in background...")
         load_mayalens_model()
         get_face_detector()
+        _MODEL_READY = True
         print("[MayaLens Server] Ready for deepfake inference.")
     except Exception as e:
         print(f"[MayaLens Server] Model pre-warm notice: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    """Immediately starts listening on port 8000; warms up heavy ML neural networks in background."""
+    t = threading.Thread(target=_warmup_worker, daemon=True)
+    t.start()
 
 @app.get("/api/health")
 def health_check():
@@ -64,7 +74,7 @@ def health_check():
         "models_active": {
             "best_weights_h5": weights_path.exists(),
             "mayalens_keras": keras_path.exists(),
-            "model_ready": True
+            "model_ready": _MODEL_READY
         },
         "demo_pdf_available": DEMO_PDF.exists(),
         "evaluation_metrics_available": EVAL_CSV.exists(),

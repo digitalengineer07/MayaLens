@@ -17,12 +17,16 @@ MODELS_DIR = Path(__file__).resolve().parent / "models"
 KERAS_MODEL_PATH = MODELS_DIR / "MayaLens.keras"
 WEIGHTS_PATH = MODELS_DIR / "best_weights.h5"
 
-# Cached singleton model & detector
+import threading
+
+# Cached singleton model & detector with thread safety
 _MODEL = None
 _DETECTOR = None
 _TF = None
 _KERAS = None
 _LAYERS = None
+_MODEL_LOCK = threading.Lock()
+_DETECTOR_LOCK = threading.Lock()
 
 def _init_tf_keras():
     global _TF, _KERAS, _LAYERS
@@ -226,32 +230,40 @@ def load_mayalens_model():
     if _MODEL is not None:
         return _MODEL
 
-    tf, keras, layers = _init_tf_keras()
-    if tf is None:
-        return None
+    with _MODEL_LOCK:
+        if _MODEL is not None:
+            return _MODEL
 
-    # Build graph and load best_weights.h5
-    try:
-        model = build_mayalens_graph(img_size=224, effnet_weights=None)
-        if WEIGHTS_PATH.exists():
-            model.load_weights(str(WEIGHTS_PATH), by_name=True, skip_mismatch=True)
-            print(f"[MayaLensInference] Loaded checkpoint weights from {WEIGHTS_PATH.name}")
-        elif KERAS_MODEL_PATH.exists():
-            model.load_weights(str(KERAS_MODEL_PATH), by_name=True, skip_mismatch=True)
-            print(f"[MayaLensInference] Loaded weights from {KERAS_MODEL_PATH.name}")
-        _MODEL = model
-    except Exception as e:
-        print(f"[MayaLensInference] Model build/load error: {e}")
-        _MODEL = None
+        tf, keras, layers = _init_tf_keras()
+        if tf is None:
+            return None
 
-    return _MODEL
+        # Build graph and load best_weights.h5
+        try:
+            model = build_mayalens_graph(img_size=224, effnet_weights=None)
+            if WEIGHTS_PATH.exists():
+                model.load_weights(str(WEIGHTS_PATH), by_name=True, skip_mismatch=True)
+                print(f"[MayaLensInference] Loaded checkpoint weights from {WEIGHTS_PATH.name}")
+            elif KERAS_MODEL_PATH.exists():
+                model.load_weights(str(KERAS_MODEL_PATH), by_name=True, skip_mismatch=True)
+                print(f"[MayaLensInference] Loaded weights from {KERAS_MODEL_PATH.name}")
+            _MODEL = model
+        except Exception as e:
+            print(f"[MayaLensInference] Model build/load error: {e}")
+            _MODEL = None
+
+        return _MODEL
 
 def get_face_detector():
     global _DETECTOR
-    if _DETECTOR is None:
-        from backend.face_detector import MayaLensFaceDetector
-        _DETECTOR = MayaLensFaceDetector()
-    return _DETECTOR
+    if _DETECTOR is not None:
+        return _DETECTOR
+
+    with _DETECTOR_LOCK:
+        if _DETECTOR is None:
+            from backend.face_detector import MayaLensFaceDetector
+            _DETECTOR = MayaLensFaceDetector()
+        return _DETECTOR
 
 def format_file_size(size_bytes: int) -> str:
     if size_bytes >= 1024 * 1024:
