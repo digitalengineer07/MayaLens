@@ -410,3 +410,4 @@ def generate_forensic_pdf_report(data: Dict[str, Any], output_dir: Path, uploads
     # Build PDF
     doc.build(story)
     return report_filename
+
